@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
             objectPoints.push_back(obj);
 
         }
+        else
+            cout << "bad calibration image" << endl;
         drawChessboardCorners(image_color,patternsize,corners,corners_detected);
         imshow("Briggs", image_color);
         waitKey(50);

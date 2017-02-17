@@ -7,3 +7,5 @@ HW3_P1/build/
 *.user
 HW3_P1/build_debug/
 *.xml
+build/
+build_debug/
