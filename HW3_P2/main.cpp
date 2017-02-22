@@ -110,6 +110,11 @@ int main(int argc, char *argv[])
     cout << E << endl;
     cout << F << endl;
     cout << T << endl;
+    FileStorage fs("Extrinsic_calibration_baseball.xml", FileStorage::WRITE);
+    fs << "R" << R;
+    fs << "T" << T;
+    fs << "E" << E;
+    fs << "F" << F;
 
     waitKey(0);
 
