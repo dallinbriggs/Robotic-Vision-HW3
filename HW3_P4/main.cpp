@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
     Mat image_color_right;
     Mat image_undistort_left;
     Mat image_undistort_right;
+    Mat image_diff_left;
+    Mat image_diff_right;
     Size patternsize;
     string filename_left;
     string filename_right;
@@ -49,11 +51,14 @@ int main(int argc, char *argv[])
     Mat fundamental_matrix;
     vector<Vec3f> lines_left;
     vector<Vec3f> lines_right;
+    Mat map_left, map_right;
+
 
     vector<Point2f> point_left;
     vector<Point2f> point_right;
 
     Mat R, T, E, F;
+    Mat R1, R2, P1, P2, Q;
 
     cameraMatrix_left = Mat::eye(3, 3, CV_64F);
     cameraMatrix_right = Mat::eye(3, 3, CV_64F);
@@ -135,6 +140,8 @@ int main(int argc, char *argv[])
 
     FileStorage fs_stereo("Extrinsic_calibration_baseball.xml", FileStorage::READ);
     fs_stereo["F"] >> fundamental_matrix;
+    fs_stereo["R"] >> R;
+    fs_stereo["T"] >> T;
 
     computeCorrespondEpilines(point_left,1,fundamental_matrix,lines_left);
     computeCorrespondEpilines(point_right,2,fundamental_matrix,lines_right);
@@ -158,11 +165,26 @@ int main(int argc, char *argv[])
                 cv::Scalar(0,0,255));
     }
 
+
+    stereoRectify(cameraMatrix_left,distCoeffs_left,cameraMatrix_right,distCoeffs_right,imageSize,R,T,R1,R2,P1,P2,Q,CALIB_ZERO_DISPARITY,-1,imageSize,0,0);
+    initUndistortRectifyMap(cameraMatrix_left,distCoeffs_left,R1,cameraMatrix_left,imageSize,CV_32FC1,map_left,map_right);
+
+    remap(image_undistort_left,image_undistort_left,map_left,map_right,INTER_NEAREST,BORDER_TRANSPARENT,0);
+    remap(image_undistort_right,image_undistort_right,map_left,map_right,INTER_NEAREST,BORDER_TRANSPARENT,0);
+
     imshow("Left", image_undistort_left);
     imshow("right", image_undistort_right);
 
-    imwrite("epipolar_left.jpg",image_undistort_left);
-    imwrite("epipolar_right.jpg",image_undistort_right);
+    absdiff(image_color_left,image_undistort_left,image_diff_left);
+    absdiff(image_color_right,image_undistort_right,image_diff_right);
+    imshow("Left",image_diff_left);
+    imshow("right", image_diff_right);
+    imwrite("original_left.jpg",image_color_left);
+    imwrite("original_right.jpg",image_color_right);
+    imwrite("rectified_left.jpg",image_undistort_left);
+    imwrite("rectified_right.jpg",image_undistort_right);
+    imwrite("diff_left.jpg",image_diff_left);
+    imwrite("diff_right.jpg",image_diff_right);
     waitKey(0);
 
     return 0;
